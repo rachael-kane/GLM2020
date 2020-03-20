@@ -44,8 +44,8 @@ GWASbyGLM<-function(y, G, C, PC){
         vt=C*ve
         t=b/sqrt(diag(vt))
         p=2*(1-pt(abs(t),n-2))
-      } #end of testing variation
+      }
     P[,i]=p[length(p)]
-  } #end of looping for markers
+  }
   return(P)
 }
