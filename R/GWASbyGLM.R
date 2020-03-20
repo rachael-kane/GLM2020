@@ -1,3 +1,5 @@
+#' Genome-wide association study using a generalized linear model.
+
 GWASbyGLM<-function(y, G, C, PC){
 
   n=nrow(G)
