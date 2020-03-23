@@ -1,4 +1,11 @@
-#' Genome-wide association study using a generalized linear model.
+#' Genome-wide association analysis using a generalized linear model.
+#'
+#' @param y A numeric matrix containing phenotype data. Dimensions are n individuals (rows) by m genetic markers (columns).
+#' @param G A numeric matrix containing genotype data. Dimensions are n individuals (rows) by 1 column.
+#' @param C An optional numeric matrix of dimensions containing user-specified cofactors. Dimensions are n individuals (rows) by c cofactors (columns).
+#' @param PC An integer specifying the number of cofactors to retain for analysis.
+#'
+#' @return A numeric matrix containing p-values for each genetic marker. Dimensions are 1 row by m genetic markers (columns).
 
 GWASbyGLM<-function(y, G, C, PC){
 
