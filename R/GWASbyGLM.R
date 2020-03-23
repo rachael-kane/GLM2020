@@ -15,6 +15,8 @@ GWASbyGLM<-function(y, G, C, PC){
   mean.Y<-mean(y)
   my<-matrix(1, nrow=n, ncol=1)
 
+  C.new<-C[,1:PC]
+
   P=matrix(NA,1,m)
   for (i in 1:m){
     x=G[,i]
