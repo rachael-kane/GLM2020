@@ -3,6 +3,10 @@ title: "GLM_Tutorial"
 author: "Rachael Kane"
 date: "3/20/2020"
 output: html_document
+vignette: >
+  %\VignetteIndexEntry{GLM_Tutorial}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
 ---
 
 ```{r setup, include=FALSE}
