@@ -1,13 +1,13 @@
 #' Correlation between cofactors and principal components.
 #'
-#' \code{cofactor.pca.cor} Tests for correlations between user-specified cofactors and principal components calculated from genotype data.
+#' @description Test for correlations between user-specified cofactors and principal components calculated from genotype data.
 #'
 #' @param U A numeric matrix containing user-specified cofactors. Dimensions are n rows (individuals) by t columns (cofactors).
 #' @param G A numeric matrix containing genotype data. Dimensions are n rows (individuals) by m columns (genetic markers).
 #'
 #' @return A list of 1 or 3 objects.
 #'
-#' @description
+#' \code{cofactor.pca.cor}
 #' When U is unspecified, cofactor.pca.cor will return a list of 1 object.
 #' With U unspecified, function will carry out principal components analysis identically to the native R function prcomp(),
 #'  and cofactor.pca.cor will return principal components scores in $cov.
