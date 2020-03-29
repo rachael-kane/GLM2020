@@ -4,17 +4,17 @@
 \alias{GWASbyGLM}
 \title{Genome-wide association analysis using a general linear model.}
 \usage{
-GWASbyGLM(y, G, C, t)
+GWASbyGLM(y, G, C, NC)
 }
 \arguments{
 \item{y}{A numeric matrix containing phenotype data. Dimensions are n rows (individuals) by 1 column.}
 
 \item{G}{A numeric matrix containing genotype data. Dimensions are n rows (individuals) by m columns (genetic markers).}
 
-\item{C}{An optional numeric matrix of dimensions containing covariate data. Dimensions are n rows (individuals) by t columns (covariates).
-The expected input for this parameter is the numeric matrix returned from the cofactor.pca.cor function included in this.}
+\item{C}{A numeric matrix containing covariate data. Dimensions are n rows (individuals) by t columns (covariates).
+The expected input for this parameter is the $cov numeric matrix returned from the cofactor.pca.cor function included in this package.}
 
-\item{t}{An integer specifying the number of covariates to retain for analysis.}
+\item{NC}{An integer specifying the number of covariates to retain for analysis.}
 }
 \value{
 A numeric matrix containing a p-value for each genetic marker. Dimensions are 1 row by m columns (genetic markers).
