@@ -35,7 +35,6 @@ Steps in tutorial
 #to download demo data and have R read as a table
 myGD=read.table(file="http://zzlab.net/GAPIT/data/mdp_numeric.txt",head=T)
 myGM=read.table(file="http://zzlab.net/GAPIT/data/mdp_SNP_information.txt",head=T)
-phenotypes=read.table(file = "http://zzlab.net/GAPIT/data/CROP545_Phenotype.txt", head=T)
 covariates=read.table(file = "http://zzlab.net/GAPIT/data/CROP545_Covariates.txt", head=T)
 
 #myGD should consist of 281 observations of 3094 variables. These represent 281 individuals with 3093 genetic markers.
@@ -43,33 +42,68 @@ covariates=read.table(file = "http://zzlab.net/GAPIT/data/CROP545_Covariates.txt
 #phenotypes should consist of 281 observations of 2 variables. These represent the 281 individuals taxa ID and their observaed phenotype score.
 #covariates should consist of
 
-#to make the myGD data the format
-
+#to make the myGD data the appropriate input format for the G2P function--> remove taxa ID column
+myGD <- cbind(myGD[,2:3094])
+#now myGD should consist of 281 observations of 3093 variables which now matches the genetic markers listed in myGM
 
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+2. Sample QTNs and simulate phenotypes utilizing G2P function
 
 ```{r cars}
-summary(cars)
+
+#define function 
+G2P=function(X,h2,alpha,NQTN,distribution){
+n=nrow(X)
+m=ncol(X)
+#Sampling QTN
+QTN.position=sample(m,NQTN,replace=F)
+SNPQ=as.matrix(X[,QTN.position])
+QTN.position
+#QTN effects
+if(distribution=="norm")
+	{addeffect=rnorm(NQTN,0,1)
+	}else
+	{addeffect=alpha^(1:NQTN)}
+#Simulate phenotype
+effect=SNPQ%*%addeffect
+effectvar=var(effect)
+residualvar=(effectvar-h2*effectvar)/h2
+residual=rnorm(n,0,sqrt(residualvar))
+y=effect+residual
+return(list(addeffect = addeffect, y=y, add = effect, residual = residual, QTN.position=QTN.position, SNPQ=SNPQ))
+}
+
+
+#simulate a phenotype
+NQTN = 10 # number of QTNs to select from your dataset 
+h2 = 0.75 #heritability --> can be changed to different values
+alpha = 0.6 
+distribution = "norm" 
+set.seed(1337) # Fix randomization --> can be set to different seed values
+sim_pheno <- G2P(myGD, h2, alpha, NQTN, distribution)
+
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+3. Use GLM function to perform GWAS by GLM
 
 ```{r pressure, echo=FALSE}
+
+Y = sim_pheno$y  #matrix of phenotypes produced by G2P function
+G = myGD   #original genotype data
+C =        #covariate data imported from zzlab.net
+PC = 3     #number of principle components you wish to retain after filtering for correlation with covariates 
 plot(pressure)
 ```
 
 4. Make manhattan plot and QQ plot and determine true QTNs and whether pvalues are inflated
 
-Manhattan plots is a type of scatter plot, usually used to visualize data with a large number of data-points. In this tutorial it is being used to display significant SNPs found in our GWASbyGLM analysis.
+Manhattan plots are a type of scatter plot, usually used to visualize data with a large number of data-points. In this tutorial it is being used to display statistically significant SNPs found in our GWASbyGLM analysis. The SNPs found above the threshold are true QTNs.
+
+
+QQ plots are used to determine if the pvalues you see in your data are inflated based on the expected pvalues.The red line on the graph represents the expected pvalues while the black circles represents the pvalues associated with your data. 
 
 ```{r pressure, echo=FALSE}
 
