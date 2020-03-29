@@ -9,7 +9,43 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
+GLM stands for general linear model. GLM's are a framework used to compare several variables. GLM's have increased power when compared to t-test association evaluation and are used for a varitey of metrics. In this tutorial you will learn how to apply a GLM to test for significant associations between quantitative trait nucleotides and observed phenotypes.
+
+The general equation for a GLM is below.
+
+Y = SNP + Q + e
+
+Y: observed phenotype
+SNP: fixed effect (true QTNs and SNPs)
+Q: fixed effect (population structure)
+e: residual
+
+Steps in tutorial
+1. Download and manipulate demo data
+2. Sample QTNs and simulate phenotypes utilizing G2P function
+3. Use GLM function to perform GWAS by GLM
+4. Make manhattan plot and QQ plot and determine true QTNs and whether pvalues are inflated
+
+
+1. Download and manipulte demo data
+
 ```{r setup, include=FALSE}
+#set your working directory to where ever you wish to have the demo data download
+
+#to download demo data and have R read as a table
+myGD=read.table(file="http://zzlab.net/GAPIT/data/mdp_numeric.txt",head=T)
+myGM=read.table(file="http://zzlab.net/GAPIT/data/mdp_SNP_information.txt",head=T)
+phenotypes=read.table(file = "http://zzlab.net/GAPIT/data/CROP545_Phenotype.txt", head=T)
+covariates=read.table(file = "http://zzlab.net/GAPIT/data/CROP545_Covariates.txt", head=T)
+
+#myGD should consist of 281 observations of 3094 variables. These represent 281 individuals with 3093 genetic markers.
+#myGM should consist of 3093 observations of 3 variables. These represent 3093 genetic markers and columns with SNP label, chromosome #, and base pair position.
+#phenotypes should consist of 281 observations of 2 variables. These represent the 281 individuals taxa ID and their observaed phenotype score.
+#covariates should consist of
+
+#to make the myGD data the format
+
+
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -31,4 +67,28 @@ You can also embed plots, for example:
 plot(pressure)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+4. Make manhattan plot and QQ plot and determine true QTNs and whether pvalues are inflated
+
+Manhattan plots is a type of scatter plot, usually used to visualize data with a large number of data-points. In this tutorial it is being used to display significant SNPs found in our GWASbyGLM analysis.
+
+```{r pressure, echo=FALSE}
+
+#this makes a vector with a different color for each chromosome for the manhattan plot
+color.vector <- rep(c("deepskyblue","orange","forestgreen"),3)
+m=ncol(myGD)
+plot(seq(1:m),-log10(GWASbyGLM), col=color.vector[myGM[,2]], main = "manhattan plot")
+abline(v=sim_pheno_GLM$QTN.position, lty = 2, lwd=1.5, col = "black")
+
+## QQplot
+p.obs=GWASbyGLM
+m2=length(p.obs)
+# m2 = markers in the last chrom
+p.uni=runif(m2,0,1)
+order.obs=order(p.obs)
+order.uni=order(p.uni)
+
+plot(-log10(p.uni[order.uni]),-log10(p.obs[order.obs]), main = "QQPlot")
+abline(a = 0, b = 1, col = "red")
+
+plot(pressure)
+```
