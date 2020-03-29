@@ -6,15 +6,20 @@
 #' @return A list of 1 or 3 objects.
 #'
 #' When U is unspecified, cofactor.pca.cor will return a list of 1 object.
+#'
 #' With U unspecified, function will carry out principal components analysis identically to the native R function prcomp(),
 #'  and cofactor.pca.cor will return principal components scores in $cov.
+#'
 #' $cov is a numeric matrix containing all principal components and individual scores.
 #'  Dimensions are n rows (individuals) by t columns (principal components).
 #'
 #' When U is specified, cofactor.pca.cor will return a list of 3 objects.
+#'
 #' $orig_pc is a numeric matrix containing all original principal components and individual scores
+#'
 #' $cov is a numeric matrix containing user-specified cofactors and all principal components not correlated with the
 #'  user-specified cofactors. Dimensions are n rows (individuals) by t columns (cofactors).
+#'
 #' $removed is a character matrix indicating which principal components were removed.
 #'
 #' The $cov matrix is intended for use as the "C" argument in the GWASbyGLM function included in this package.
