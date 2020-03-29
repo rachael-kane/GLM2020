@@ -14,7 +14,18 @@ cofactor.pca.cor(U, G)
 \value{
 A list of 1 or 3 objects.
 
-\code{cofactor.pca.cor}
+U unspecified: 1 object.
+ $cov, a numeric matrix containing all principal components and individual scores.
+
+U specified: 3 objects.
+ $orig_pc, a numeric matrix containing all original principal components
+ $cov, a numeric matrix containing user-specified cofactors and retained principal components.
+ $removed, a matrix indicating which principal components were removed.
+}
+\description{
+Test for correlations between user-specified cofactors and principal components calculated from genotype data. Automatically remove principal components linearly dependent (correlated) with user-specified cofactors.
+}
+\details{
 When U is unspecified, cofactor.pca.cor will return a list of 1 object.
 With U unspecified, function will carry out principal components analysis identically to the native R function prcomp(),
  and cofactor.pca.cor will return principal components scores in $cov.
@@ -28,7 +39,4 @@ $cov is a numeric matrix containing user-specified cofactors and all principal c
 $removed is a character matrix indicating which principal components were removed.
 
 The $cov matrix is intended for use as the "C" argument in the GWASbyGLM function included in this package.
-}
-\description{
-Test for correlations between user-specified cofactors and principal components calculated from genotype data.
 }
