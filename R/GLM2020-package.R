@@ -2,5 +2,32 @@
 #'
 #' @description This package offers several features for efficiently carrying out genome-wide association studies (GWAS) using general linear models (GLM). Users may input phenotypic and genotypic data, as well as user-specified cofactors (e.g., location collected) and principal components calculated from genotype data.
 #' In addition to implementing GWAS using a GLM, this package offers functionality for automatically removing genotypic principal components that exhibit correlation with user-specified cofactors.
+#'
+#' @details
+#'
+#' Common questions and answers:
+#'
+#'  Function cofactor.pca.cor(U, G)
+#'
+#'  -Q: What object types are acceptable as inputs for U and G?
+#'  -A: Both U and G should be numeric matrices.
+#'
+#'  -Q: Should user-specified cofactors (U) and genotype data (G) include a column for taxa ID?
+#'  -A: Users should exclude taxa IDs in both matrices.
+#'
+#'  -Q: What if I do not have user-specified cofactors (U)?
+#'  -A: The function works without specifying U. In this case, the function will return a numeric matrix containing all principal components and individual scores. When users do not have user-specified cofactors (U), it is recommended that users simply use the native R function prcomp() in order to retain all information offered by prcomp().
+#'
+#'  Function GWASbyGLM(y, G, C, NC)
+#'
+#'  -Q: How should I chose the number of covariates to retain (NC)?
+#'  -A1: Choosing a value for NC is highly dependent on what the user's covariate (C) data contain. If the user does not have user-specified covariates (U), the covariate matrix (C) will likely contain only principal components (PCs) calculated from genotypic data. When this is the case, users should assess the proportion of variance explained by each PC. Looking across PCs, often the proportion of variance explained becomes less appreciable after the first several PCs (creating what is sometimes referred to as a "hockey stick" shaped graph). There are many approaches for selecting the number of PCs to retain, and one approach is to retain PCs until the "elbow" of the "hockey stick."
+#'  -A2: When covariates include both user-specified cofactors (U) and principal components (PCs) calculated from genotypic data, users should remove the PCs that are correlated with user-specified cofactors - the function cofactor.pca.cor() included in this package automatically removes those PCs correlated with user-specified cofactors. Users should check which PCs were removed and assess whether the remaining PCs explain substantial variation in the genotypic data. If the remaining PCs do not explain substantial variance, they likely poorly account for population structure, and the user may opt to exclude them.
+#'
+#'  -Q: How do I know which p-values correspond to which genetic marker?
+#'  -A: The p-values returned by the GWASbyGLm function are ordered in the same way as the genetic markers included in the original genotype data matrix (G). Users should refer to their genotype data matrix, and if applicable, a marker map, when interpreting p-values.
+#'
+#'
+#'
 
 "GLM2020-package"<-paste("GLM2020-package")
