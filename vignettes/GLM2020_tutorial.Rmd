@@ -239,25 +239,4 @@ length(detected_glm_test)
 
 ```
 
-4. Make a QQ plot to determine whether pvalues are inflated
 
-Manhattan plots are a type of scatter plot, usually used to visualize data with a large number of data-points. In this tutorial it is being used to display statistically significant SNPs found in our GWASbyGLM analysis. The SNPs found above the threshold are true QTNs.
-
-
-QQ plots are used to determine if the pvalues you see in your data are inflated based on the expected pvalues.The red line on the graph represents the expected pvalues while the black circles represents the pvalues associated with your data. 
-
-```{r}
-
-## QQplot
-p.obs=glm_test
-m2=length(p.obs)
-# m2 = markers in the last chrom
-p.uni=runif(m2,0,1)
-order.obs=order(p.obs)
-order.uni=order(p.uni)
-
-plot(-log10(p.uni[order.uni]),-log10(p.obs[order.obs]), main = "QQPlot")
-abline(a = 0, b = 1, col = "red")
-
-
-'''
