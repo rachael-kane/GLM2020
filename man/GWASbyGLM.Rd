@@ -22,3 +22,6 @@ A numeric matrix containing a p-value for each genetic marker. Dimensions are 1 
 \description{
 Genome-wide association analysis using a general linear model.
 }
+\details{
+Numeric matrices should contain only phenotype/genotype/covariate values, no accessory information like taxa ID.
+}
