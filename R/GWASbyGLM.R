@@ -9,6 +9,7 @@
 #' @return A numeric matrix containing a p-value for each genetic marker. Dimensions are 1 row by m columns (genetic markers).
 #'
 #' @details Numeric matrices should contain only phenotype/genotype/covariate values, no accessory information like taxa ID.
+#' @details Type vignette("GLM2020_tutorial") for example use.
 
 GWASbyGLM<-function(y, G, C, NC){
 

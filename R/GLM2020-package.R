@@ -4,6 +4,8 @@
 #' In addition to implementing GWAS using a GLM, this package offers functionality for automatically removing genotypic principal components that exhibit correlation with user-specified cofactors.
 #'
 #' @details
+#' Type vignette("GLM2020_tutorial") for example use.
+#'
 #'
 #' Common questions and answers:
 #'

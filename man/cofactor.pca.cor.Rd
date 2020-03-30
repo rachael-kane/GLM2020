@@ -39,4 +39,6 @@ $cov is a numeric matrix containing user-specified cofactors and all principal c
 $removed is a character matrix indicating which principal components were removed.
 
 The $cov matrix is intended for use as the "C" argument in the GWASbyGLM function included in this package.
+
+Type vignette("GLM2020_tutorial") for example use.
 }

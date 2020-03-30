@@ -24,4 +24,6 @@ Genome-wide association analysis using a general linear model.
 }
 \details{
 Numeric matrices should contain only phenotype/genotype/covariate values, no accessory information like taxa ID.
+
+Type vignette("GLM2020_tutorial") for example use.
 }

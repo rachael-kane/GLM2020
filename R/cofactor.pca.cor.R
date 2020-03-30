@@ -29,6 +29,8 @@
 #' $removed is a character matrix indicating which principal components were removed.
 #'
 #' The $cov matrix is intended for use as the "C" argument in the GWASbyGLM function included in this package.
+#'
+#' Type vignette("GLM2020_tutorial") for example use.
 
 cofactor.pca.cor<-function(U, G){
   #Carries out principal components analysis
