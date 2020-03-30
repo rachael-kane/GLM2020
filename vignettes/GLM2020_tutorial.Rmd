@@ -169,6 +169,42 @@ points(myGM_new[mySim$QTN.position, c(2,3)], type="p", col="blue", cex=5)
 
 3. Use GLM function to perform GWAS by GLM and make a manhattan plot to visualize significant SNPs
 
+```{r, echo=FALSE}
+GWASbyGLM<-function(y, G, C, NC){
+
+  n=nrow(G)
+  m=ncol(G)
+  my<-matrix(1, nrow=n, ncol=1)
+
+  C.new<-C[,1:NC]
+
+  P=matrix(NA,1,m)
+  for (i in 1:m){
+    x=G[,i]
+    if(max(x)==min(x)){
+      p=1}else{
+        X=cbind(my,C.new,x)
+        LHS=t(X)%*%X
+        C=solve(LHS)
+        RHS=t(X)%*%y
+        b=C%*%RHS
+        yb=X%*%b
+        e=y-yb
+        n=length(y)
+        ve=sum(e^2)/(n-1)
+        vt=C*ve
+        t=b/sqrt(diag(vt))
+        p=2*(1-pt(abs(t),n-2))
+      }
+    P[,i]=p[length(p)]
+  }
+  return(P)
+}
+
+
+
+```
+
 
 ```{r}
 
