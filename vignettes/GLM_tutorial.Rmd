@@ -71,7 +71,6 @@ myGD_untransposed<-t(myGD_transposed_new)
 X=myGD_untransposed
 
 
-knitr::opts_chunk$set(echo = TRUE)
 ```
 
 2. Obtain principal components, sample QTNs and simulate phenotypes utilizing G2P function
