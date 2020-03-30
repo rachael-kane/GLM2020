@@ -9,38 +9,45 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
-
-GLM stands for general linear model. GLM's are a framework used to compare several variables. GLM's have increased power when compared to t-test association evaluation and are used for a varitey of analyses. In this tutorial you will learn how to apply a GLM to test for significant associations between quantitative trait nucleotides (QTNs) and observed phenotypes. This is called a genome wide association study (GWAS) were the desired outcome is identification of QTNs with significant associations with traits of interest.  
-
+General linear models (GLMs) allow the comparison of several variables. GLMs have increased power for detecting quantitative trait nucleotides (QTNs) associated with phenotypes, relative to t-tests for identifying associations between genetic markers and traits. In this tutorial, you will learn how to apply a GLM to test for significant associations between quantitative trait nucleotides (QTNs) and observed phenotypes. 
 
 Steps in tutorial
 1. Download and manipulate demo data
-2. Obtain principal components, sample QTNs and simulate phenotypes utilizing G2P function
-3. Use GLM function to perform GWAS by GLM and make a manhattan plot to visualize QTN positions 
-4. Make a QQ plot to determine whether pvalues are inflated for demo data
+2. Calculate principal components from genotypes, sample QTNs, and simulate phenotypes
+3. Use a GLM to perform GWAS
+4. Visualize GWAS results
+
+_______________
 
 
 1. Download and manipulte demo data
 
-Demo data is sourced from zzlab.net. The demo data is manipulated to obtain the appropriate input format. Then the demo data is filtered by a minor allele frequency of 0.05 which is a standard within scienctific literature. 
+Demo data is sourced from Dr. Zhiwu Zhang's website, zzlab.net. Here, you will obtain a genetic marker map, a table that contains positional information for the genetic markers of interest, as well as a genotype matrix, which contains genotypes (coded as 0, 1, and 2 for homozygotes of allele 1, heterozygotes, and homozygotes of allele 2) for each individual at each genetic marker.
 
-```{r setup, include=FALSE}
 
-#to download demo data and have R read as a table
+```{r part1a}
+
 myGD=read.table(file="http://zzlab.net/GAPIT/data/mdp_numeric.txt",head=T)
 myGM=read.table(file="http://zzlab.net/GAPIT/data/mdp_SNP_information.txt",head=T)
 
-#myGD should consist of 281 observations of 3094 variables. These represent 281 individuals with 3093 genetic markers.
-#myGM should consist of 3093 observations of 3 variables. These represent 3093 genetic markers and columns with SNP label, chromosome #, and base pair position.
-#phenotypes should consist of 281 observations of 2 variables. These represent the 281 individuals taxa ID and their observaed phenotype score.
-#covariates should consist of
+```
 
-#to make the myGD and myGM data the appropriate input format --> remove taxa ID column from myGD and transpose myGM
+myGD should consist of 281 observations of 3094 variables. These represent 281 individuals with 3093 genetic markers. myGM should consist of 3093 observations of 3 variables. These represent 3093 genetic markers and columns with SNP label, chromosome number, and base pair position.
+
+Data often does not come in a format appropriate for your desired analyses. Here, we manipulate the dataset to remove unwanted columns.
+
+```{r part1b}
+#Remove taxa ID column from my GD, and transpose myGD
 myGD_temp<-myGD[,-1]
 myGD_transposed<-t(myGD_temp)
+```
 
-#now myGD should consist of 281 observations of 3093 variables which now matches the genetic markers listed in myGM
+MyGD should now consst of 281 observations of 3093 variables, representing individuals and genetic markers, respecitively.
 
+
+Now, we will calculate the minor allele frequency for each genetic marker and filter out [remove] genetic markers that have minor allele frequencies less or equal to 0.05, which is common practice in the scienctific literature. 
+
+```{r part1c}
 #add column for minor allele frequency
 maf<-vector(length=nrow(myGD_transposed))
 myGD_transposed<-cbind(myGD_transposed, maf)
@@ -52,7 +59,7 @@ for (i in 1:nrow(myGD_transposed)){
   myGD_transposed[i,ncol(myGD_transposed)]<-min(freq1,freq2)
 }
 
-#temporarily bind myGM and myGD_transposed together --> to apply MAF filter to both at same time
+#temporarily bind myGM and myGD_transposed together to remove markers from both at same time
 GM_GD_full<-cbind(myGM, myGD_transposed)
 
 #remove markers with minor allele frequency =< 0.05
@@ -61,54 +68,97 @@ GM_GD_full<-subset(GM_GD_full, GM_GD_full[,ncol(GM_GD_full)]>0.05)
 #remove column containing minor allele frequencies
 GM_GD_full2<-GM_GD_full[,1:(ncol(GM_GD_full)-1)]
 
-#creates new marker map
+#create a new marker map
 myGM_new<-GM_GD_full2[,1:3]
 
-#creates new genotype data matrix
+#create a new genotype data matrix
 myGD_transposed_new<-GM_GD_full2[,4:ncol(GM_GD_full2)]
 myGD_untransposed<-t(myGD_transposed_new)
 X=myGD_untransposed
 
-knitr::opts_chunk$set(echo = TRUE)
+
 ```
 
-2. Obtain principal components, sample QTNs and simulate phenotypes utilizing G2P function
 
-```{r, echo=FALSE}
+Your data now consists of a new marker map and genotype matrix, both of which are numeric matrices.
+
+_______________________
+
+
+2. Calculate principal components, sample QTNs, and simulate phenotypes.
+
+Principal components analysis (PCA) allows us to identify structure within our data. Here, we will apply PCA to our genotype data using the native R function prcomp. 
+
+```{r part2a}
+pca_X<-prcomp(X)
+
+```
+
+We can visualize the genotype data in terms of principal components by plotting the principal component (PC) values, or scores, of each individual in the dataset. We can also investigate how much variance each PC explains in the data, which will help us determine how many PCs to retain later on, when we implement GWAS using GLM.
+
+```{r part2b}
+#plot individual PC scores
+plot(pca_X$x)
+
+#plot the proportion of variance explained by each principal component (PC)
+pca_X_var<-(pca_X$sdev^2)
+pca_X_pvar<-(pca_X_var/sum(pca_X_var))
+plot(pca_X_pvar,xlab="Principal component", ylab="Proportion of variance explained", ylim=c(0,0.07), type='b')
+
+```
+
+We can see that individuals (points in the graph) are dispersed substantially along the first two PCs (PC1 and PC2; PCs are numbered sequentially by decreasing variance explained). The clustering of individuals indicates that there is structure within our genotypic data, which can influence the results of GWAS if left unaccounted for.
+
+We can further see that additional PCs past PC5-PC10 each explain relatively little variance in our data. This suggests that retaining approximately 5 PCs for the GWAS may reasonably account for the structure in our data without dramatically increasing compute time.
+
+
+Sometimes, along with sequencing the genomes of individuals to obtain genotypes, we may have collected additional data, such as the location of an individual, which can be thought of as cofactors. These additional factors may also influence the efficacy of GWAS, so we should account for them as well. However, we should be careful. These cofactors may be correlated with the principal components we calculate from genotypes, and including both in our final analysis would be inappropriate. Therefore, our package, GLM2020, includes a function that carries out PCA, identifies correlations between PCs and user-specified cofactors, and automatically removes those PCs that exhibit a correlation with at least one user-specified cofactor.
+
+This function, called cofactor.pca.cor, is shown below. Note that the function depends on an additional R package, called "psych."
+
+Briefly, cofactor.pca.cor accepts two arguments: U and G. U is a numeric matrix containing user-specified cofactors. Its dimensions are n rows (individuals) by t columns (cofactors). G is a numeric matrix containing genotype data. Its dimensions are n rows (individuals) by m columns (genetic markers). The output is a list of either 1 or 3 objects, depending on whether the user included the argument U.
+
+When U is unspecified, the function returns 1 object a numeric matrix called $cov, which contains all principal components and individual scores for each. When U is specified, the function returns 3 objects. $orig_pc is a numeric matrix containing all original principal components. $cov is a numeric matrix containing user-specified cofactors and retained principal components. $removed is a matrix indicating which principal components were removed due to collinearity with the cofactors in U.
+
+```{r part2c}
+
+#install.packages("psych")
+library(psych)
+
 cofactor.pca.cor<-function(U, G){
   #Carries out principal components analysis
   pca.obj<-prcomp(G)
   #Isolates the principal component scores matrix (rows as individuals, columns as principal components)
   pca<-pca.obj$x
-
+  
   #If user-specified cofactors (U) are not specified, the function returns the principal component scores matrix
   if(missing(U)){
     gwas.covariates<-pca
-
+    
     #Combines the original principal components scores, the final set of covariates (U + retained principal components)
     list_cov<-list(cov=gwas.covariates)
-
+    
     #Output$cov is a covariate matrix for use as the argument "C" in the GWASbyGLM function
     return(list_cov)
-
+    
     #If user-specified cofactors (U) are specified, the function tests for correlations between cofactors in U and principal components
   }else{
     #Borrows the matrix correlation function from the R package "psych"
     pca.c.corr.test<-corr.test(x=U[,1:ncol(U)], y=pca[,1:ncol(pca)], adjust="none")
-
+    
     #Identifies pairs of U cofactors and principal components that are significantly correlated, with a Bonferroni correction for multiple testing
     #Columns in sig.pca.c.corr are principal components, rows are U cofactors
     #The sig.pca.c.corr matrix cells contain values of 1 and 0, indicating significant correlation or lack of correlation, respectively, between the principal component and U cofactor
     sig.pca.c.corr<-pca.c.corr.test$p<(0.05/(ncol(U)*ncol(pca)))
-
+    
     #Creates empy matrix, to which the retained principal components and individual scores will be attached
     filtered.pca.temp<-matrix(ncol=1,nrow=nrow(pca))
-
+    
     #Creates empty dataframe, to be filled with lines indicating which principal components are removed
     removal.report.temp<-matrix(ncol=1, nrow=1)
-
+    
     #When a principal component is correlated with any of the U cofactors, it is removed
-    for (i in ncol(sig.pca.c.corr)){
+    for (i in 1:ncol(sig.pca.c.corr)){
       #Columns in sig.pca.c.corr are principal components, rows are U cofactors
       #If a principal component is uncorrelated with all U cofactors, the sum down the column equals 0
       if ((sum(sig.pca.c.corr[,i]))==0){
@@ -118,47 +168,49 @@ cofactor.pca.cor<-function(U, G){
         removal.report.temp<-rbind(removal.report.temp, report)
       }
     }
-
+    
     #Creates matrix consisting of principal components and individual scores for the uncorrelated principal components
-    filtered.pca<-data.matrix(filtered.pca.temp[,2:ncol(filtered.pca.temp)])
-
+    filtered.pca<-filtered.pca.temp[,-1]
+    
     #Binds the matrix of U cofactors with the matrix of retained principal components
     gwas.covariates<-cbind(U,filtered.pca)
-
+    
     #Creates the final report of which principal components were removed
-    removal.report<-removal.report.temp[2:nrow(removal.report.temp),1]
-
+    removal.report<-removal.report.temp[-1,]
+    
     #Combines the original principal components scores, the final set of covariates (U + retained principal components, and the removal report)
     list_origpca_retainedcov_removed<-list(orig_pc=pca, cov=gwas.covariates, removed=removal.report)
-
+    
     #Function returns this set of outputs when U is specified
     #Output$cov is a covariate matrix for use as the argument "C" in the GWASbyGLM function
     return(list_origpca_retainedcov_removed)
   }
 }
 
+```
 
+For simplicity, we do not have user-specified cofactors. Let's run cofactor.pca.cor on our genotype data, leaving the argument "U" unspecified. Doing this will simply return a matrix containing all principal components and each individual's scores (no PCs are filtered out because there are no user-specified cofactors with which to test for collinearity). We can call upon this matrix using principal_components$cov.
+
+```{r part2d}
+principal_components<-cofactor.pca.cor(G=X)
+C=principal_components$cov
 ```
 
 
-```{r}
+Next, we will simulate phenotypes from our genotypic data using the function G2P, which we will source from zzlab.net. This function designates a subset of markers as quantitative trait nucleotides (QTNs), which are causal genetic markers that govern (in part) the trait of interest. Recall that the goal of GWAS is to identify such causal markers.
 
+```{r part2e}
 source("http://zzlab.net/StaGen/2020/R/G2P.R")
-
-#obtain principal components
-#the argument U is unspecified, so the cofactor.pca.cor function will essentially carry out PCA and return principal components and individual scores
-
-principal_components<-cofactor.pca.cor(G=X)
-
-#screeplot to determine how many principal components to retain (here we should retain about 3)
-pca_X<-prcomp(X)
-pca_X_var<-(pca_X$sdev^2)
-pca_X_pvar<-(pca_X_var/sum(pca_X_var))
-plot(pca_X_pvar,xlab="Principal component", ylab="Proportion of variance explained", ylim=c(0,0.07), type='b')
 
 #simulate phenotypes
 set.seed(99164)
 mySim=G2P(X, h2=.75,alpha=1,NQTN=10,distribution="normal")
+
+```
+
+We can also visualize the chromosomal positions of the simulated QTNs to get a sense of their distribution along the genome. Note that this is possible due to simulation, and you are unlikely to have this information in advance of carrying out GWAS.
+
+```{r part2f}
 
 ##### plot QTN position
 plot(myGM_new[,c(2,3)], xlab="Chromosome", ylab="Position")
@@ -167,9 +219,25 @@ points(myGM_new[mySim$QTN.position, c(2,3)], type="p", col="blue", cex=5)
 
 ```
 
-3. Use GLM function to perform GWAS by GLM and make a manhattan plot to visualize significant SNPs
+_________________________
 
-```{r, echo=FALSE}
+3. We are now prepared to carry out GWAS (using GLM!). GLM2020 includes the function GWASbyGLM. GWASbyGLM accepts 4 arguments: y, G, C, and NC
+
+y A numeric matrix containing phenotype data. Dimensions are n rows (individuals) by 1 column.
+
+G A numeric matrix containing genotype data. Dimensions are n rows (individuals) by m columns (genetic markers).
+
+C A numeric matrix containing covariate data. Dimensions are n rows (individuals) by t columns (covariates).The expected input for this parameter is the $cov numeric matrix returned from the cofactor.pca.cor function included in this package.
+
+NC An integer specifying the number of covariates to retain for analysis.
+
+This function returns a numeric matrix containing a p-value for each genetic marker. Dimensions are 1 row by m columns (genetic markers).
+
+Note that in our example, G corresponds to genotype data in X, C corresponds to our previous output of cofactor.pca.cor, which we called C.
+
+Use GLM function to perform GWAS by GLM and make a Manhattan plot to visualize significant SNPs.
+
+```{r 3a}
 GWASbyGLM<-function(y, G, C, NC){
 
   n=nrow(G)
@@ -202,22 +270,29 @@ GWASbyGLM<-function(y, G, C, NC){
 }
 
 
-
 ```
 
 
-```{r}
-
-#carry out GLM
+```{r 3b}
 #set values for arguments
 y=mySim$y
 G=X
 C=principal_components$cov
-NC=3
+NC=5
 
-
+#carry out GLM
 glm_test<-GWASbyGLM(y=y, G=G, C=C, NC=NC)
 
+```
+
+
+_______________
+
+4. Visualize the results of GWAS
+
+GWASbyGLM outputs p-values for each genetic marker. We may want to visualize this by plotting p-values against the genomic position of our markers. This type of plot is known as a Manhattan plot. The code below shows how to make one using our current data. As before, because we know the positions of the QTNs in advance, we can also plot those to see how they relate to the p-values returned by GWASbyGLM.
+
+```{r part4a}
 #Manhattan plot
 color.vector <- rep(c("deepskyblue","orange","forestgreen","indianred3"),9)
 m=nrow(myGM_new)
@@ -225,7 +300,11 @@ plot(seq(1:m),-log10(glm_test), col=color.vector[myGM_new[,2]], ylab="-log(P)", 
 abline(v=mySim$QTN.position, lty = 2, lwd=1.5, col = "black")
 legend(4500, 9, legend=c("QTN"),
        col=c("black"), lty=c(2), cex=0.8)
+```
 
+We also want to determine which markers (out of all of them, not just the known QTNs) show the greatest association (the lowest p-values) with the trait of interest. Furthermore, we want to know whether GWASbyGLM successfully identifies the markers that we know are the true causal markers (the QTNs) among the markers most greatly associated with the phenotype. Here, we can see that GWASbyGLM identifies 4 true QTNs among the top-10 most greatly associated genetic markers, for this particular simulation.
+
+```{r 4b}
 #identify QTNs among top-10 SNPs
 #orders markers by p-value from smallest to largest
 index_glm_test=order(glm_test)
@@ -235,8 +314,30 @@ top10_glm_test=index_glm_test[1:10]
 detected_glm_test=intersect(top10_glm_test, mySim$QTN.position)
 #returns the number of true positives among the top 10 markers
 length(detected_glm_test)
-
-
 ```
 
+QQ plots are another type of graph that illustrate useful information. They allow us to determine whether the p-values calculated using GWASbyGLM are inflated relative to our expectations. The red line on the graph represents the line we expect the data points to follow, if the observed p-values matched those expected. We can see that the p-values are slightly inflated. 
+
+```{r 4c}
+
+obs_p<-glm_test
+
+set.seed(120)
+exp_p_test<-cbind(replicate(20,runif(length(obs_p))))
+exp_p_ordered<-matrix(nrow=nrow(exp_p_test), ncol=ncol(exp_p_test))
+for (i in 1:ncol(exp_p_test)){
+  exp_p_temp<-exp_p_test[,i]
+  order_exp_p_test<-order(exp_p_temp)
+  exp_p_ordered[,i]<-exp_p_temp[order_exp_p_test]
+  
+}
+exp_p_ordered_mean<-rowMeans(exp_p_ordered)
+
+obs_order<-order(obs_p)
+
+#QQ plot GWASbyGLM
+plot(x=-log10(exp_p_ordered_mean), y=-log10(obs_p[obs_order]), xlab="Expected p-value", ylab="Observed p-value", main="GWASbyGLM QQ plot")
+abline(coef=c(0,1), col="blue")
+
+```
 
